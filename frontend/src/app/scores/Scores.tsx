@@ -8,12 +8,6 @@ interface Team {
   name: string;
   logo: string;
 }
-interface Competitor {
-  team: Team;
-  homeAway: "home" | "away";
-  score: number;
-  records?: { type: string; summary: string }[];
-}
 
 interface Competition {
   status: {
@@ -23,49 +17,65 @@ interface Competition {
     period?: number;
     displayClock?: string;
   };
-  competitors: Competitor[];
+  competitors?: Array<{
+    team: Team;
+    homeAway: "home" | "away";
+    score: string;
+  }>;
 }
 
 interface Game {
   id: string;
   shortName?: string;
-  competitions: Competition[]; // This is an object, not an array, so make sure to handle it accordingly
+  competitions: Competition[];
 }
 
 const Scores = () => {
   const [games, setGames] = useState<Game[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchScores = async () => {
       if (!NBA_SCORES_API) {
         console.error("NBA_SCORES_API is undefined");
-        return; // Stop execution if the API URL is missing
+        setError("API URL is missing.");
+        setLoading(false);
+        return;
       }
 
       try {
         const res = await fetch(NBA_SCORES_API);
         const data = await res.json();
 
-        // Assuming 'events' contains the array of games
-        if (data && data.events) {
-          setGames(data.events); // Set the game data to the state
-        } else {
-          console.error("Invalid data format:", data);
+        // Early return if data is invalid
+        if (!data || !data.events) {
+          setError("Invalid data format");
+          setLoading(false);
+          return;
         }
+
+        setGames(data.events);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching NBA scores:", error);
+        setError("Error fetching scores.");
+        setLoading(false);
       }
     };
 
     fetchScores();
   }, []);
 
+  if (loading) return <p>Loading scores...</p>;
+  if (error) return <p>{error}</p>;
+
   return (
     <div className={ScoresCSS.scoresWrapper}>
       <h1 className={ScoresCSS.scoresHeader}>NBA Scores</h1>
       <div className={ScoresCSS.scoresGamesWrapper}>
         {games.length === 0 ? (
-          <p>Loading scores...</p>
+          <p>No games available</p>
         ) : (
           games.map((game) => <GameCard key={game.id} game={game} />)
         )}

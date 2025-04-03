@@ -1,17 +1,10 @@
+"use client";
 import ScoresCSS from "./scores.module.css";
 import Link from "next/link";
 
-// Define the types for the `game` object
 interface Team {
   name: string;
   logo: string;
-}
-
-interface Competitor {
-  team: Team;
-  homeAway: "home" | "away";
-  score: number;
-  records?: { type: string; summary: string }[];
 }
 
 interface Competition {
@@ -22,16 +15,11 @@ interface Competition {
     period?: number;
     displayClock?: string;
   };
-  competitors?: [
-    {
-      team: Team;
-      homeAway: "home";
-    },
-    {
-      team: Team;
-      homeAway: "away";
-    }
-  ];
+  competitors?: Array<{
+    team: Team;
+    homeAway: "home" | "away";
+    score: string;
+  }>;
 }
 
 interface Game {
@@ -40,25 +28,19 @@ interface Game {
   competitions: Competition[];
 }
 
-interface GameCardProps {
-  game: Game; // Use the Game type here
-}
-
-const GameCard = ({ game }: GameCardProps) => {
+const GameCard = ({ game }: { game: Game }) => {
   const { id, shortName, competitions } = game;
-  const competition = competitions[0];
+  const competition = competitions?.[0]; // Use optional chaining for safety
 
-  const homeTeam = competition.competitors.find(
-    (team) => team.homeAway === "home"
-  );
-  const awayTeam = competition.competitors.find(
-    (team) => team.homeAway === "away"
-  );
+  // Handle case where competition or competitors is missing
+  if (!competition || !competition.competitors) {
+    return <div>Error: Missing competition data</div>;
+  }
 
-  const homeRecord =
-    homeTeam?.records?.find((rec) => rec.type === "total")?.summary || "N/A";
-  const awayRecord =
-    awayTeam?.records?.find((rec) => rec.type === "total")?.summary || "N/A";
+  const [homeTeam, awayTeam] = competition.competitors;
+
+  const homeRecord = homeTeam?.team?.name || "N/A"; // Add optional chaining for safety
+  const awayRecord = awayTeam?.team?.name || "N/A"; // Add optional chaining for safety
 
   return (
     <Link
@@ -69,22 +51,30 @@ const GameCard = ({ game }: GameCardProps) => {
       <div className={ScoresCSS.teamScores}>
         <h3 className={ScoresCSS.shortName}>{shortName}</h3>
         <div className={ScoresCSS.teamScore}>
-          <img
-            src={awayTeam?.team.logo} // Assuming awayTeam.team.logo contains the logo URL
-            alt={`${awayTeam?.team.name} logo`}
-            className={ScoresCSS.teamLogo}
-          />
-          {awayTeam?.team.name} [{awayRecord}]
-          <div className={ScoresCSS.score}>{awayTeam?.score}</div>
+          {awayTeam && (
+            <>
+              <img
+                src={awayTeam.team.logo} // Assuming awayTeam.team.logo contains the logo URL
+                alt={`${awayTeam.team.name} logo`}
+                className={ScoresCSS.teamLogo}
+              />
+              {awayTeam.team.name} [{awayRecord}]
+              <div className={ScoresCSS.score}>{awayTeam.score || "N/A"}</div>
+            </>
+          )}
         </div>
         <div className={ScoresCSS.teamScore}>
-          <img
-            src={homeTeam?.team.logo} // Assuming homeTeam.team.logo contains the logo URL
-            alt={`${homeTeam?.team.name} logo`}
-            className={ScoresCSS.teamLogo}
-          />
-          {homeTeam?.team.name} [{homeRecord}]
-          <div className={ScoresCSS.score}>{homeTeam?.score}</div>
+          {homeTeam && (
+            <>
+              <img
+                src={homeTeam.team.logo} // Assuming homeTeam.team.logo contains the logo URL
+                alt={`${homeTeam.team.name} logo`}
+                className={ScoresCSS.teamLogo}
+              />
+              {homeTeam.team.name} [{homeRecord}]
+              <div className={ScoresCSS.score}>{homeTeam.score || "N/A"}</div>
+            </>
+          )}
         </div>
       </div>
       <div className={ScoresCSS.time}>
