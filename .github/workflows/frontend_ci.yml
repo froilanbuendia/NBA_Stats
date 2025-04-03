@@ -12,7 +12,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: pro-tasker
+        working-directory: frontend
 
     steps:
       - uses: actions/checkout@v3
@@ -22,8 +22,8 @@ jobs:
           node-version: v23.7.0
       - name: install dependencies
         run: npm ci
-      # - name: run lint
-      #   run: npm run lint
+      #   - name: run lint
+      #     run: npm run lint
       # - name: run tests
       #   run: npm run test
       - name: builds project
