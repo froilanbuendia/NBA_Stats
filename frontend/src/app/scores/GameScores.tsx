@@ -1,73 +1,90 @@
 import ScoresCSS from "./scores.module.css";
 import Link from "next/link";
 
+// Define the types for the `game` object
 interface Team {
   name: string;
   logo: string;
+}
+
+interface Competitor {
+  team: Team;
+  homeAway: "home" | "away";
   score: number;
+  records?: { type: string; summary: string }[];
+}
+
+interface Competition {
+  status: {
+    type: {
+      description: string;
+    };
+    period?: number;
+    displayClock?: string;
+  };
+  competitors?: [
+    {
+      team: Team;
+      homeAway: "home";
+    },
+    {
+      team: Team;
+      homeAway: "away";
+    }
+  ];
+}
+
+interface Game {
+  id: string;
+  shortName?: string;
+  competitions: Competition[];
 }
 
 interface GameCardProps {
-  game: {
-    id: string;
-    shortName?: string; // Make shortName optional
-    competition: {
-      status: {
-        type: { description: string };
-        period?: number;
-        displayClock?: string;
-      };
-      competitors: [
-        {
-          team: Team;
-          homeAway: "home";
-          score: number;
-        },
-        {
-          team: Team;
-          homeAway: "away";
-          score: number;
-        }
-      ];
-    };
-  };
+  game: Game; // Use the Game type here
 }
 
 const GameCard = ({ game }: GameCardProps) => {
-  const { id, shortName, competition } = game;
-  const { competitors } = competition;
+  const { id, shortName, competitions } = game;
+  const competition = competitions[0];
 
-  const homeTeam = competitors.find((team) => team.homeAway === "home");
-  const awayTeam = competitors.find((team) => team.homeAway === "away");
+  const homeTeam = competition.competitors.find(
+    (team) => team.homeAway === "home"
+  );
+  const awayTeam = competition.competitors.find(
+    (team) => team.homeAway === "away"
+  );
 
-  if (!homeTeam || !awayTeam) return null; // Prevent errors if teams are undefined
-
-  const homeRecord = homeTeam.team.score || "N/A";
-  const awayRecord = awayTeam.team.score || "N/A";
+  const homeRecord =
+    homeTeam?.records?.find((rec) => rec.type === "total")?.summary || "N/A";
+  const awayRecord =
+    awayTeam?.records?.find((rec) => rec.type === "total")?.summary || "N/A";
 
   return (
-    <Link href={`/games/${id}`} className={ScoresCSS.scoreGamesContainer}>
+    <Link
+      key={id}
+      className={ScoresCSS.scoreGamesContainer}
+      href={`/games/${game.id}`}
+    >
       <div className={ScoresCSS.teamScores}>
         <h3 className={ScoresCSS.shortName}>{shortName}</h3>
         <div className={ScoresCSS.teamScore}>
           <img
-            src={awayTeam.team.logo} // Logo for away team
-            alt={`${awayTeam.team.name} logo`}
+            src={awayTeam?.team.logo} // Assuming awayTeam.team.logo contains the logo URL
+            alt={`${awayTeam?.team.name} logo`}
             className={ScoresCSS.teamLogo}
           />
-          {awayTeam.team.name}
-          <div>[{awayRecord}]</div>
-          <div className={ScoresCSS.score}>{awayTeam.team.score}</div>
+          {awayTeam?.team.name} [{awayRecord}]
+          <div className={ScoresCSS.score}>{awayTeam?.score}</div>
         </div>
         <div className={ScoresCSS.teamScore}>
           <img
-            src={homeTeam.team.logo} // Logo for home team
-            alt={`${homeTeam.team.name} logo`}
+            src={homeTeam?.team.logo} // Assuming homeTeam.team.logo contains the logo URL
+            alt={`${homeTeam?.team.name} logo`}
             className={ScoresCSS.teamLogo}
           />
-          {homeTeam.team.name}
-          <div className={ScoresCSS.record}>[{homeRecord}]</div>
-          <div className={ScoresCSS.score}>{homeTeam.team.score}</div>
+          {homeTeam?.team.name} [{homeRecord}]
+          <div className={ScoresCSS.score}>{homeTeam?.score}</div>
         </div>
       </div>
       <div className={ScoresCSS.time}>

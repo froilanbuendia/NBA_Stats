@@ -3,34 +3,33 @@ import { NBA_SCORES_API } from "@/app/config/config";
 import { useState, useEffect } from "react";
 import ScoresCSS from "./scores.module.css";
 import GameCard from "./GameScores";
+
 interface Team {
   name: string;
   logo: string;
+}
+interface Competitor {
+  team: Team;
+  homeAway: "home" | "away";
   score: number;
+  records?: { type: string; summary: string }[];
+}
+
+interface Competition {
+  status: {
+    type: {
+      description: string;
+    };
+    period?: number;
+    displayClock?: string;
+  };
+  competitors: Competitor[];
 }
 
 interface Game {
   id: string;
-  shortName?: string; // Make shortName optional
-  competition: {
-    status: {
-      type: { description: string };
-      period?: number;
-      displayClock?: string;
-    };
-    competitors: [
-      {
-        team: Team;
-        homeAway: "home";
-        score: number;
-      },
-      {
-        team: Team;
-        homeAway: "away";
-        score: number;
-      }
-    ];
-  };
+  shortName?: string;
+  competitions: Competition[]; // This is an object, not an array, so make sure to handle it accordingly
 }
 
 const Scores = () => {
