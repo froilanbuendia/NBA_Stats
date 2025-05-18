@@ -17,10 +17,14 @@ interface Competition {
     period?: number;
     displayClock?: string;
   };
+  series: {
+    type: string;
+  };
   competitors?: Array<{
     team: Team;
     homeAway: "home" | "away";
     score: string;
+    record: string;
   }>;
 }
 
@@ -57,6 +61,7 @@ const Scores = () => {
 
         setGames(data.events);
         setLoading(false);
+        console.log(data);
       } catch (error) {
         console.error("Error fetching NBA scores:", error);
         setError("Error fetching scores.");
